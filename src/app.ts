@@ -3,22 +3,26 @@ import compression from "compression";  // compresses requests
 import session from "express-session";
 import bodyParser from "body-parser";
 import lusca from "lusca";
-import mongo from "connect-mongo";
+// import mongo from "connect-mongo";
 import flash from "express-flash";
 import path from "path";
 import mongoose from "mongoose";
+import connectRedis from "connect-redis";
+import redis from "redis";
 import passport from "passport";
 import bluebird from "bluebird";
-import { MONGODB_URI, SESSION_SECRET } from "./util/secrets";
+import { MONGODB_URI, REDIS_URL, SESSION_SECRET } from "./util/secrets";
 
-const MongoStore = mongo(session);
+// const MongoStore = mongo(session);
+const RedisStore = connectRedis(session);
+// eslint-disable-next-line @typescript-eslint/camelcase
+const redisClient = redis.createClient(REDIS_URL, { auth_pass: "1993618@jack" });
 
 // Controllers (route handlers)
 import * as homeController from "./controllers/home";
 import * as userController from "./controllers/user";
 import * as apiController from "./controllers/api";
 import * as contactController from "./controllers/contact";
-
 
 // API keys and Passport configuration
 import * as passportConfig from "./config/passport";
@@ -44,13 +48,21 @@ app.set("view engine", "pug");
 app.use(compression());
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
+// app.use(session({
+//     resave: true,
+//     saveUninitialized: true,
+//     secret: SESSION_SECRET,
+//     store: new MongoStore({
+//         url: mongoUrl,
+//         autoReconnect: true
+//     })
+// }));
 app.use(session({
     resave: true,
     saveUninitialized: true,
     secret: SESSION_SECRET,
-    store: new MongoStore({
-        url: mongoUrl,
-        autoReconnect: true
+    store: new RedisStore({ 
+        client: redisClient
     })
 }));
 app.use(passport.initialize());

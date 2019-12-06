@@ -14,6 +14,7 @@ const prod = ENVIRONMENT === "production"; // Anything else is treated as 'dev'
 
 export const SESSION_SECRET = process.env["SESSION_SECRET"];
 export const MONGODB_URI = prod ? process.env["MONGODB_URI"] : process.env["MONGODB_URI_LOCAL"];
+export const REDIS_URL = prod ? process.env["REDIS_URL"] : process.env["REDIS_URL_LOCAL"];
 
 if (!SESSION_SECRET) {
     logger.error("No client secret. Set SESSION_SECRET environment variable.");
@@ -25,6 +26,15 @@ if (!MONGODB_URI) {
         logger.error("No mongo connection string. Set MONGODB_URI environment variable.");
     } else {
         logger.error("No mongo connection string. Set MONGODB_URI_LOCAL environment variable.");
+    }
+    process.exit(1);
+}
+
+if (!REDIS_URL) {
+    if (prod) {
+        logger.error("No redis connection string. Set REDIS_URL environment variable.");
+    } else {
+        logger.error("No redis connection string. Set REDIS_URL_LOCAL environment variable.");
     }
     process.exit(1);
 }
