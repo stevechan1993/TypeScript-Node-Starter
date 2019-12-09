@@ -11,6 +11,9 @@ import connectRedis from "connect-redis";
 import redis from "redis";
 import passport from "passport";
 import bluebird from "bluebird";
+import "reflect-metadata";
+import { createConnection } from "typeorm";
+import { User } from "./entity/User";
 import { MONGODB_URI, REDIS_URL, SESSION_SECRET } from "./util/secrets";
 
 // const MongoStore = mongo(session);
@@ -40,6 +43,23 @@ mongoose.connect(mongoUrl, { useNewUrlParser: true, useCreateIndex: true, useUni
     console.log("MongoDB connection error. Please make sure MongoDB is running. " + err);
     // process.exit();
 });
+
+createConnection({
+    type: "mysql",
+    host: "localhost",
+    port: 3306,
+    username: "root",
+    password: "1993618@jack",
+    database: "test",
+    entities: [
+        User
+    ],
+    synchronize: true,
+    logging: false
+}).then(connection => {
+    // here you can start to work with your entities
+    console.log("MySQL Connect Successfully:", connection.options.database);
+}).catch(error => console.log(error));
 
 // Express configuration
 app.set("port", process.env.PORT || 3000);

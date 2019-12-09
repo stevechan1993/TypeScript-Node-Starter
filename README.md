@@ -34,6 +34,7 @@ To build and run this app locally you will need a few things:
 - Install [Node.js](https://nodejs.org/en/)
 - Install [MongoDB](https://docs.mongodb.com/manual/installation/)
 - Install [VS Code](https://code.visualstudio.com/)
+- Install [MySQL](https://www.mysql.com/downloads/)
 
 # Getting started
 - Clone the repository
