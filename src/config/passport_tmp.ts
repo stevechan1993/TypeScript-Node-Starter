@@ -3,21 +3,18 @@ import passportLocal from "passport-local";
 import passportFacebook from "passport-facebook";
 import _ from "lodash";
 
-import { getManager } from "typeorm";
-import { User } from "../entity/User";
+import { User, UserDocument } from "../entity/User";
 import { Request, Response, NextFunction} from "express";
 
 const LocalStrategy = passportLocal.Strategy;
 const FacebookStrategy  = passportFacebook.Strategy;
-// get a post repository to perform operations with post
-const userRepository = getManager().getRepository(User);
 
 passport.serializeUser<any, any>((user, done) => {
   done(undefined, user.id);
 });
 
 passport.deserializeUser((id, done)=> {
-  userRepository.findOne(id).then(user =>{
+  User.findOne(id).then(user =>{
     done(user);
   }).catch(err => {
     done(err);
@@ -28,7 +25,7 @@ passport.deserializeUser((id, done)=> {
  * Sign in using Email and Password.
  */
 passport.use(new LocalStrategy({ usernameField: "email"}, (email, password, done)=> {
-  userRepository.findOne({ email: email.toLowerCase()}).then((user: any) => {
+  User.findOne({ email: email.toLowerCase()}).then((user: any) => {
     if (!user) {
       return done(undefined, false, { message: `Email ${email} not found.`});
     }
@@ -70,39 +67,39 @@ passport.use(new FacebookStrategy({
   passReqToCallback: true
 }, (req: any, accessToken, refreshToken, profile, done) => {
   if (req.user) {
-    userRepository.findOne({facebook: profile.id}).then(existingUser => {
+    User.findOne({facebook: profile.id}).then(existingUser => {
       if (existingUser) {
         req.flash("errors", { msg: "There is already a Facebook account that belongs to you. Sign in with that account or delete it, then link it with your current account."});
         done(undefined);
       } else {
-        userRepository.findOne(req.user.id).then((user: any) => {
+        User.findOne(req.user.id).then((user: any) => {
           user.facebook = profile.id;
           user.tokens.push({kind: "facebook", accessToken});
           user.profile.name = user.profile.name || `${profile.name.givenName} ${profile.name.familyName}`;
           user.profile.gender = user.profile.gender || profile._json.gender;
           user.profile.picture = user.profile.picture || `https://graph.facebook.com/${profile.id}/picture?type=large`;
-          user.save((err: Error) => {
-            req.flash("info", { msg: "Facebook account has been linked."});
+          user.save().catch((err: Error) => {
+            req.flash("info", { msg: "Facebook account has been linked." });
             done(err, user);
           });
         }).catch(err => {
-          done(err);
+          return done(err);
         });
       }
     }).catch(err => {
-      done(err);
+      return done(err);
     });
   } else {
-    userRepository.findOne({facebook: profile.id}).then(existingUser => {
+    User.findOne({facebook: profile.id}).then(existingUser => {
       if (existingUser) {
         return done(undefined, existingUser);
       }
-      userRepository.findOne({email: profile._json.email}).then(existingEmailUser => {
+      User.findOne({email: profile._json.email}).then(existingEmailUser => {
         if (existingEmailUser) {
           req.flash("errors", {msg: "There is already an account using this email address. Sign in to that account and link it with Facebook manually from Account Settings."});
           done(undefined);
         } else {
-          const user: any  = new User();
+          const user: any = new User();
           user.email = profile._json.email;
           user.facebook = profile.id;
           user.tokens.push({kind: "facebook", accessToken});
@@ -110,15 +107,15 @@ passport.use(new FacebookStrategy({
           user.profile.gender = profile._json.gender;
           user.profile.picture = `https://graph.facebook.com/${profile.id}/picture?type=large`;
           user.profile.location = (profile._json.location) ? profile._json.location.name : "";
-          user.save((err: Error) => {
+          user.save().catch((err: Error) => {
             done(err, user);
           });
         }
       }).catch(err => {
-        done(err);
+        return done(err);
       });
     }).catch(err => {
-      done(err);
+      return done(err);
     });
   }
 }));
@@ -139,7 +136,7 @@ export const isAuthenticated = (req: Request, res: Response, next: NextFunction)
 export const isAuthorized = (req: Request, res: Response, next: NextFunction) => {
   const provider = req.path.split("/").slice(-1)[0];
 
-  const user = new User();
+  const user = req.user as UserDocument;
   if (_.find(user.tokens, {kind: provider})) {
     next();
   } else {
