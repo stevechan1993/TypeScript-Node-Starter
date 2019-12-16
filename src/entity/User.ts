@@ -8,12 +8,9 @@ export interface UserDocument {
   password: string;
   passwordResetToken: string;
   passwordResetExpires: Date;
-
   facebook: string;
   tokens: AuthToken[];
-
   profile: Profile;
-
   comparePassword: comparePasswordFunction;
   gravatar: (size: number) => string;
 }
@@ -91,14 +88,16 @@ export class User extends BaseEntity{
   id: number;
 
   @Column({
-    nullable: true
+    nullable: true,
+    default: undefined
   })
   email: string;
 
   @Column({
-    nullable: true
+    nullable: true,
+    default: undefined
   })
-  public password: string;
+  password: string;
 
   private tempPassword: string;
 
@@ -115,34 +114,40 @@ export class User extends BaseEntity{
   }
 
   @Column({
-    nullable: true
+    nullable: true,
+    default: undefined
   })
   passwordResetToken: string;
 
   @Column({
-    nullable: true
+    nullable: true,
+    default: undefined
   })
   passwordResetExpires: string;
 
   @Column({
-    nullable: true
+    nullable: true,
+    default: undefined
   })
   facebook: string;
 
   @Column({
-    nullable: true
+    nullable: true,
+    default: undefined
   })
   twitter: string;
 
   @Column({
-    nullable: true
+    nullable: true,
+    default: undefined
   })
   google: string;
 
   @Column("simple-array",{
     nullable: true
   })
-  tokens: Array<AuthToken>;
+  // tokens: Array<AuthToken> = [];
+  tokens: AuthToken[] = [];
 
   @Column("simple-json", {
     nullable: true
@@ -163,8 +168,7 @@ export class User extends BaseEntity{
 
   @BeforeInsert()
   @BeforeUpdate()
-  genSalt = function() {
-    
+  genSalt: any = function() {
     if (this.tempPassword === this.password) {return;}
 
     // sync
@@ -208,7 +212,7 @@ export class User extends BaseEntity{
     });
   };
 
-  gravatar = function(size: number = 200) {
+  gravatar: any = function(size: number = 200) {
     if (!this.email) {
       return `https://gravatar.com/avatar/?s=${size}&d=retro`;
     }

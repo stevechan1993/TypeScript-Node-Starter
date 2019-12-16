@@ -14,10 +14,10 @@ passport.serializeUser<any, any>((user, done) => {
 });
 
 passport.deserializeUser((id, done)=> {
-  User.findOne(id).then(user =>{
-    done(user);
+  User.findOne(id).then((user) =>{
+    done(undefined, user);
   }).catch(err => {
-    done(err);
+    done(err, undefined);
   });
 });
 
