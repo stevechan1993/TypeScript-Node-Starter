@@ -23,5 +23,8 @@
   },
   "typescript.referencesCodeLens.enabled": true,
   "appService.zipIgnorePattern": [".vscode{,/**}"],
-  "appService.deploySubpath": ""
+  "appService.deploySubpath": "",
+  "editor.codeActionsOnSave": {
+    "source.fixAll.eslint": true
+  }
 }

@@ -97,7 +97,13 @@ export const postSignup = async (req: Request, res: Response, next: NextFunction
 
   user.email = req.body.email;
   user.password = req.body.password;
-  user.profile = undefined;
+  user.profile = {
+    name: "",
+    gender: "",
+    location: "",
+    website: "",
+    picture: ""
+  };
 
   await User.findOne({email: req.body.email}).then(async existingUser => {
     if (existingUser) {
